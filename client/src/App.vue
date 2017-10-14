@@ -3,13 +3,16 @@
     <div class="auto-complete" :class="{ hidden: activeIdx >= 0 }">
       <input class="text-input" placeholder="Search security"></input>
     </div>
-    <card :open="activeIdx === idx"
-      :toggleActive="toggleActive"
-      v-for="(name, idx) in cards"
-      :key="idx"
-      :idx="idx"
-      :name="name"
-      :hidden="activeIdx !== idx && activeIdx >= 0"></card>
+    <div :class="{ open: activeIdx >= 0 }" class="list-card">
+      <card :open="activeIdx === idx"
+        :toggleActive="toggleActive"
+        v-for="(name, idx) in cards"
+        :key="idx"
+        :idx="idx"
+        :name="name"
+        :hidden="activeIdx !== idx && activeIdx >= 0"
+        fundFamilyName="SinoPac Securities Inv Trust Co., Ltd"></card>
+    </div>
   </div>
 </template>
 
@@ -44,9 +47,9 @@ export default {
 
 body {
   margin: 0;
+  background: $imperial;
 }
 #app {
-  background: $white;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -56,6 +59,13 @@ body {
 textarea, input {
   border: 0;
 }
+.list-card {
+  transition: all .1s ease;
+  padding-top: 90px;
+  &.open {
+    padding-top: 0;
+  }
+}
 .auto-complete {
   width: 100vw;
   height: 150px;
@@ -64,7 +74,7 @@ textarea, input {
   justify-content: center;
   align-items: center;
   max-height: 200px;
-  transition: all .5s ease .5s;
+  transition: all .25s ease .35s;
   overflow: hidden;
   .text-input {
     width: calc(100vw - 120px);

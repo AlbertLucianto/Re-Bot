@@ -1,8 +1,28 @@
 <template>
   <div class="card" :style="cardStyle" :class="{ inactive: !open, hidden }" @mousedown="openThis">
     <h1 class="security-name" :class="{ inactive: !open }">{{ name }}</h1>
-    <div class="rim-out" v-if="open" ref="rimOut"
-      @mousedown="startScroll" @mousemove="doScroll" @mouseup="stopScroll">
+    <h3 class="family-name">{{ fundFamilyName }}</h3>
+    <div class="buy-data" v-if="open">
+      <div class="buy-date">
+        <div class="label">
+          Buy Date
+        </div>
+        <div class="value">
+          10 Oct 2017
+        </div>
+      </div>
+      <div class="buy-price">
+        <div class="label">
+          Buy Price
+        </div>
+        <div class="value">
+          $ 2
+        </div>
+      </div>
+    </div>
+    <div class="rim-out" v-if="open" ref="rimOut" :style="rimStyle"
+      @mousedown="startScroll" @mousemove="doScroll" @mouseup="stopScroll"
+      @touchstart="startScroll" @touchmove="doScroll" @touchend="stopScroll">
       <div class="rim-in" @mousedown="stopPropagate">
         <div class="data">
           <div class="label">Total</div>
@@ -10,8 +30,9 @@
         </div>
       </div>
     </div>
-    <div class="swipe-container" @mousedown="startDrag"
-      @mousemove="startMove" @mouseup="stopDrag" v-if="open">
+    <div class="swipe-container" v-if="open"
+      @mousedown="startDrag" @mousemove="startMove" @mouseup="stopDrag"
+      @touchstart="startDrag" @touchmove="startMove" @touchend="stopDrag">
       <svg class="swipe-up">
         <g class="line-group" v-for="arrow in arrows" :key="arrow">
           <line x1="-40" :y1="30 + (arrow * 40)" x2="0" :y2="arrow * 40" class="swipe-line"></line>
@@ -27,18 +48,20 @@
 import dynamics from 'dynamics.js';
 
 const scrollConstant = 0.05;
+const startDragOff = -200;
 
 export default {
   data() {
     return {
       arrows: [0, 1, 2],
-      dragOff: 0,
+      dragOff: startDragOff,
       startPos: 0,
       dragging: false,
       total: 15,
       scrolling: false,
       scrollBuffer: 0,
       lastScrollPos: { x: 0, y: 0 },
+      gradientDeg: 0,
     };
   },
   props: {
@@ -47,12 +70,23 @@ export default {
     idx: Number,
     name: String,
     hidden: Boolean,
+    fundFamilyName: String,
   },
   computed: {
     cardStyle() {
       return {
-        transform: `translate(0, ${this.dragOff / 3}px) scale(${(2000 + this.dragOff) / 2000})`,
+        transform: `translate(0, ${(this.dragOff / 3) + 50}px) scale(${(2000 + this.dragOff) / 2000})`,
         'border-radius': `${Math.min(Math.abs(this.dragOff / 10), 50)}px`,
+      };
+    },
+    rimStyle() {
+      const pi = Math.PI;
+      const gradPos = {
+        x: (1 + Math.cos((this.gradientDeg / 180) * pi)) / 2,
+        y: (1 + Math.sin((this.gradientDeg / 180) * pi)) / 2,
+      };
+      return {
+        background: `radial-gradient(at ${gradPos.x * 100}% ${gradPos.y * 100}%, #F29D2C, #FFC127)`,
       };
     },
   },
@@ -68,7 +102,7 @@ export default {
       if (this.dragging) {
         const evt = e.changedTouches ? e.changedTouches[0] : e;
         const move = evt.pageY - this.startPos;
-        this.dragOff = move < 0 ? move : 0;
+        this.dragOff = move < startDragOff ? move : startDragOff;
       }
     },
     stopDrag() {
@@ -79,7 +113,7 @@ export default {
         this.toggleActive(-1);
       }
       dynamics.animate(this, {
-        dragOff: 0,
+        dragOff: startDragOff,
       }, {
         type: dynamics.easeOut,
         duration: 500,
@@ -135,6 +169,13 @@ export default {
       e.stopPropagation();
     },
   },
+  mounted() {
+    this.$nextTick(() => {
+      setInterval(() => {
+        this.gradientDeg += 1;
+      }, 50);
+    });
+  },
 };
 </script>
 
@@ -162,13 +203,39 @@ export default {
   &.hidden {
     height: 0;
   }
+  .family-name {
+    font-size: 52px;
+    margin: 0;
+    color: $pearl;
+    margin-bottom: 80px;
+    max-width: 900px;
+  }
   .security-name {
     display: block;
-    padding-top: 100px;
+    padding-top: 50px;
+    margin-bottom: 0;
     font-size: 120px;
     color: $imperial;
     &.inactive {
       padding-top: 0;
+      margin-bottom: unset;
+    }
+  }
+  .buy-data {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    .buy-date, .buy-price {
+      font-size: 48px;
+      min-width: 200px;
+      padding: 20px;
+      .label {
+        font-size: 32px;
+        font-weight: 600;
+        color: $pearl;
+        padding-bottom: 8px;
+      }
     }
   }
   .rim-out {
@@ -183,7 +250,6 @@ export default {
     left: calc(50% - 350px);
     bottom: 500px;
     border-radius: 50%;
-    background: $thistle;
     box-shadow: 0 10px 50px rgba(0,0,0,.15) inset;
   }
   .rim-in {
