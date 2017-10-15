@@ -1,14 +1,15 @@
 <template>
   <div class="card" :style="cardStyle" :class="{ inactive: !open, hidden }" @mousedown="openThis">
-    <h1 class="security-name" :class="{ inactive: !open }">{{ name }}</h1>
-    <h3 class="family-name">{{ fundFamilyName }}</h3>
+    <h1 class="security-name" :class="{ inactive: !open }">{{ card.ticker }}</h1>
+    <h3 class="family-name">{{ card.fundfamilyname }}</h3>
     <div class="buy-data" v-if="open">
       <div class="buy-date">
         <div class="label">
           Buy Date
         </div>
         <div class="value">
-          10 Oct 2017
+          <datepicker :value="date" input-class="input"
+            calendar-class="calendar" @selected="dateSelected"></datepicker>
         </div>
       </div>
       <div class="buy-price">
@@ -16,7 +17,7 @@
           Buy Price
         </div>
         <div class="value">
-          $ 2
+          $ <input @input="changePrice" :value="price" class="input-text"></input>
         </div>
       </div>
     </div>
@@ -46,11 +47,15 @@
 
 <script>
 import dynamics from 'dynamics.js';
+import Datepicker from 'vuejs-datepicker';
 
 const scrollConstant = 0.05;
 const startDragOff = -200;
 
 export default {
+  components: {
+    Datepicker,
+  },
   data() {
     return {
       arrows: [0, 1, 2],
@@ -62,15 +67,17 @@ export default {
       scrollBuffer: 0,
       lastScrollPos: { x: 0, y: 0 },
       gradientDeg: 0,
+      date: new Date(),
+      price: 2,
     };
   },
   props: {
     toggleActive: Function,
     open: Boolean,
     idx: Number,
-    name: String,
     hidden: Boolean,
-    fundFamilyName: String,
+    card: Object,
+    userSecurity: Object,
   },
   computed: {
     cardStyle() {
@@ -164,12 +171,42 @@ export default {
     },
     stopScroll() {
       this.scrolling = false;
+      this.submitUpdate();
     },
     stopPropagate(e) {
       e.stopPropagation();
     },
+    dateSelected(val) {
+      this.date = new Date(val);
+      this.submitUpdate();
+    },
+    changePrice(e) {
+      this.price = e.target.value;
+      this.submitUpdate();
+    },
+    submitUpdate() {
+      fetch(`/api/user/${this.$route.params.userId}/security/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          securities: [
+            {
+              security_id: this.card.security_id,
+              amount: this.total,
+              purchase_date: `${this.date.getFullYear()}-${this.date.getMonth()}-${this.date.getDate()}`,
+              purchase_price: this.price,
+            },
+          ],
+        }),
+      });
+    },
   },
   mounted() {
+    this.total = this.userSecurity.amount;
+    this.date = new Date(this.userSecurity.date);
+    this.price = this.userSecurity.price;
     this.$nextTick(() => {
       setInterval(() => {
         this.gradientDeg += 1;
@@ -179,9 +216,18 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import './styles/colors.scss';
 
+.input {
+  border: none;
+  width: 300px;
+  height: 80px;
+  font-size: 48px;
+  text-align: center;
+  background: none;
+  color: $blue;
+}
 .card {
   overflow: hidden;
   position: relative;
@@ -226,7 +272,7 @@ export default {
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
-    .buy-date, .buy-price {
+    .buy-price, .buy-date {
       font-size: 48px;
       min-width: 200px;
       padding: 20px;
@@ -236,6 +282,23 @@ export default {
         color: $pearl;
         padding-bottom: 8px;
       }
+      .input-text {
+        border: none;
+        width: 100px;
+        height: 80px;
+        font-size: 48px;
+        text-align: center;
+        background: none;
+        color: $blue;
+      }
+    }
+    .calendar {
+      position: fixed;
+      left: calc(50vw - 300px);
+      width: 600px;
+      height: 550px;
+      padding-top: 50px;
+      box-shadow: 0 30px 50px rgba(0,0,0,.15);
     }
   }
   .rim-out {

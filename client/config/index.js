@@ -31,7 +31,16 @@ module.exports = {
     autoOpenBrowser: true,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    historyApiFallback: true,
+    noInfo: true,
+    proxyTable: {
+      '/api': {
+        target: 'https://whitepaper-db-api.herokuapp.com',
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: {'^/api' : ''}
+      }
+    },
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README
     // (https://github.com/webpack/css-loader#sourcemaps)
