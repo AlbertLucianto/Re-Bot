@@ -1,10 +1,10 @@
 <template>
   <div>
     <div class="auto-complete" :class="{ hidden: activeIdx >= 0 }">
-      <input class="text-input" placeholder="Search security" @input="handleChange"></input>
+      <input class="text-input" placeholder="Search security" @input="handleChange" :value="query"></input>
     </div>
-    <svg viewBox="0 0 32 32" width="300" height="300" fill="white" v-if="!loaded">
-      <circle transform="translate(8 0)" cx="0" cy="16" r="0"> 
+    <svg viewBox="0 0 32 32" width="300" height="600" fill="white" v-if="!loaded">
+      <circle transform="translate(8 0)" cx="0" cy="16" r="0">
         <animate attributeName="r" values="0; 4; 0; 0" dur="1.2s" repeatCount="indefinite" begin="0"
           keytimes="0;0.2;0.7;1" keySplines="0.2 0.2 0.4 0.8;0.2 0.6 0.4 0.8;0.2 0.6 0.4 0.8" calcMode="spline" />
       </circle>
@@ -27,12 +27,12 @@
         :card="card.security"
         :userSecurity="card.user_security"></card>
     </div>
-    <div class="list-search" :style="{ searching }">
+    <div class="list-search" :class="{ searching }">
       <result v-for="(result, idx) in searchResults"
         :key="idx"
         :idx="idx"
         :security="result"
-        :closeSearch="closeSearch"></result>
+        :closeResults="closeResults"></result>
     </div>
   </div>
 </template>
@@ -59,6 +59,7 @@ export default {
       searching: false,
       resultsLoaded: true,
       loaded: false,
+      query: '',
     };
   },
   methods: {
@@ -66,6 +67,7 @@ export default {
       this.activeIdx = num;
     },
     handleChange(e) {
+      this.query = e.target.value;
       if (e.target.value !== '') {
         clearTimeout(curReq);
         this.searching = true;
@@ -90,19 +92,25 @@ export default {
           });
       }
     },
-    closeSearch() {
+    closeResults() {
+      this.query = '';
       this.searching = false;
       this.searchResults = [];
       this.resultsLoaded = true;
+      this.fetchAll();
+    },
+    fetchAll() {
+      this.loaded = false;
+      fetch(`${serviceUserUrl}${this.$route.params.userId}/security`)
+        .then(res => res.json())
+        .then((data) => {
+          this.loaded = true;
+          this.cards = data.data;
+        });
     },
   },
-  beforeCreate() {
-    fetch(`${serviceUserUrl}${this.$route.params.userId}/security`)
-      .then(res => res.json())
-      .then((data) => {
-        this.loaded = true;
-        this.cards = data.data;
-      });
+  created() {
+    this.fetchAll();
   },
 };
 </script>
@@ -115,16 +123,24 @@ textarea, input {
 }
 .list-card {
   transition: all .1s ease;
-  padding-top: 90px;
+  padding-top: 210px;
   &.open {
     padding-top: 0;
   }
 }
 .list-search {
   max-height: 0;
+  padding-top: 0;
   transition: all .25 ease;
+  &.searching {
+    padding-top: 210px;
+  }
 }
 .auto-complete {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
   width: 100vw;
   height: 150px;
   background: $pearl;
@@ -134,6 +150,7 @@ textarea, input {
   max-height: 200px;
   transition: all .25s ease .35s;
   overflow: hidden;
+  box-shadow: 0 10px 50px rgba(0,0,0,.15);
   .text-input {
     width: calc(100vw - 120px);
     height: 100px;

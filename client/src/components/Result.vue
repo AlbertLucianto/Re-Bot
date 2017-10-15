@@ -9,10 +9,11 @@
 export default {
   props: {
     security: Object,
-    closeSearch: Function,
+    closeResults: Function,
   },
   methods: {
     subscribe() {
+      const today = new Date();
       fetch(`https://whitepaper-db-api.herokuapp.com/user/${this.$route.params.userId}/security/`, {
         method: 'POST',
         headers: {
@@ -22,16 +23,16 @@ export default {
           securities: [
             {
               security_id: this.security.id,
-              amount: 700,
-              purchase_date: '2017-07-07',
-              purchase_price: 7.95,
+              amount: 0,
+              purchase_date: `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`,
+              purchase_price: 1,
             },
           ],
         }),
       })
         .then(res => res.json())
         .then(() => {
-          this.closeSearch();
+          this.closeResults();
         });
     },
   },
