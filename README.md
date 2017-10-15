@@ -2,4 +2,6 @@
 
 > Helper bot to manage your first experience investment
 
+![alt text](https://albertlucianto.github.io/whitepaper/static/img/re-bot-demo.gif)
+
 # [Demo for mobile, not desktop friendly](https://albertlucianto.github.io/whitepaper/#/aa101)
