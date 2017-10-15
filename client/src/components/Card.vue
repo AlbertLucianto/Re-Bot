@@ -185,7 +185,7 @@ export default {
       this.submitUpdate();
     },
     submitUpdate() {
-      fetch(`/api/user/${this.$route.params.userId}/security/`, {
+      fetch(`https://whitepaper-db-api.herokuapp.com/user/${this.$route.params.userId}/security/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

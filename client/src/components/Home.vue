@@ -41,8 +41,8 @@
 import Card from '@/components/Card';
 import Result from '@/components/Result';
 
-const serviceUserUrl = '/api/user/';
-const serviceSecurityUrl = '/api/security/';
+const serviceUserUrl = 'https://whitepaper-db-api.herokuapp.com/user/';
+const serviceSecurityUrl = 'https://whitepaper-db-api.herokuapp.com/security/';
 let curReq = 0;
 
 export default {
